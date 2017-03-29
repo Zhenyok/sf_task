@@ -1,0 +1,4 @@
+services:
+    products.import:
+        class: Itransition\DataImporterBundle\Importer\CsvDataImport
+        arguments: ['@doctrine.orm.entity_manager', '@file_locator','@validator']

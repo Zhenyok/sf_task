@@ -1,0 +1,7 @@
+columns:
+  strproductcode: 'Product Code'
+  strproductname: 'Product Name'
+  strproductdesc: 'Product Description'
+  intstock: 'Stock'
+  dtmdiscontinued: 'Discontinued'
+  floatprice: 'Cost in GBP'
