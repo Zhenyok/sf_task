@@ -1,4 +1,13 @@
+parameters:
+  column.mapping:
+    code: 'Product Code'
+    productName: 'Product Name'
+    stock: 'Stock'
+    description: 'Product Description'
+    discontinued: 'Discontinued'
+    price: 'Cost in GBP'
+
 services:
     products.import:
         class: Itransition\DataImporterBundle\Importer\CsvDataImport
-        arguments: ['@doctrine.orm.entity_manager', '@file_locator','@validator']
+        arguments: ['@doctrine.orm.entity_manager', '@file_locator','@validator','%column.mapping%']

@@ -1,5 +1,4 @@
 <?php
-
 namespace Itransition\DataImporterBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;

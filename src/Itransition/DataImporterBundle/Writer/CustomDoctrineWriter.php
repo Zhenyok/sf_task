@@ -1,13 +1,16 @@
 <?php
-
 namespace Itransition\DataImporterBundle\Writer;
-
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Port\Doctrine\DoctrineWriter;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class CustomDoctrineWriter extends DoctrineWriter {
+/**
+ * Class CustomDoctrineWriter
+ * @package Itransition\DataImporterBundle\Writer
+ */
+class CustomDoctrineWriter extends DoctrineWriter
+{
     /**
      * Validator
      *
@@ -32,22 +35,39 @@ class CustomDoctrineWriter extends DoctrineWriter {
     /**
      * @var array
      */
-    protected $exclusionItems = [];
+    protected $excludedItems = [];
 
     /**
      * @var int
      */
     private $exclusion = 0;
 
+    /**
+     * @var Array
+     */
     private $lastResult;
 
+    /**
+     * @var Boolean
+     */
     private $test;
 
+    /**
+     * @var int
+     */
     protected $counter = 0;
 
+    /**
+     * @var int
+     */
     private $batchSize = 20;
 
-    public function __construct(ObjectManager $objectManager, $objectName, ValidatorInterface $validator, $index = null) {
+    public function __construct(
+        ObjectManager $objectManager,
+        $objectName,
+        ValidatorInterface $validator,
+        $index = null
+    ) {
         parent::__construct($objectManager, $objectName, $index);
         $this->validator = $validator;
 
@@ -60,12 +80,12 @@ class CustomDoctrineWriter extends DoctrineWriter {
 
     public function setMode($test)
     {
-        $this->test = (bool)$test;
+        $this->test = (bool) $test;
     }
 
-    public function exclusionItems()
+    public function getExcludedItems()
     {
-        return $this->exclusionItems;
+        return $this->excludedItems;
     }
 
     public function getLastResult()
@@ -76,27 +96,6 @@ class CustomDoctrineWriter extends DoctrineWriter {
     public function setLastResult($result)
     {
         $this->lastResult = $result;
-    }
-
-    /**
-     * Contains unique key in current batch.
-     *
-     * @param $entity
-     * @return bool
-     */
-    private function contains($entity)
-    {
-        foreach ($this->uniqueFields as $field) {
-            $value = $this->objectMetadata->getFieldValue($entity, $field);
-            $key = $field . '_' . $value;
-            if (isset($this->uniqueFieldsValues[$key])) {
-                return true;
-            } else {
-                $this->uniqueFieldsValues[$key] = true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -111,9 +110,10 @@ class CustomDoctrineWriter extends DoctrineWriter {
         $errors = $this->validator->validate($entity);
 
         if (count($errors) > 0 || $this->contains($entity)) {
-            $this->exclusionItems[] = $item;
+            $this->excludedItems[] = $this->prepareExcludedItem($item);
             $this->exclusion++;
             $this->setLastResult(false);
+
             return $this;
         }
 
@@ -133,6 +133,7 @@ class CustomDoctrineWriter extends DoctrineWriter {
         return $this;
     }
 
+
     protected function clear()
     {
         $this->uniqueFieldsValues = [];
@@ -143,5 +144,50 @@ class CustomDoctrineWriter extends DoctrineWriter {
     {
         $this->clear();
         $this->objectManager->flush();
+    }
+
+    /**
+     * Removes date info from rows that can't be imported
+     *
+     * @param Array  $item    Reference to item that can't be imported
+     *
+     * @return Array Item with removed dates
+     *
+     */
+    private function prepareExcludedItem(&$item)
+    {
+        if (isset($item['timeStamp'])) {
+            unset($item['timeStamp']);
+        }
+        if (isset($item['dateAdded'])) {
+            unset($item['dateAdded']);
+        }
+
+        if (isset($item['discontinued']) && !empty($item['discontinued'])) {
+            $item['discontinued'] = $item['discontinued']->format('Y-m-d H:i:s');
+        }
+
+        return $item;
+    }
+
+    /**
+     * Contains unique key in current batch.
+     *
+     * @param $entity
+     * @return bool
+     */
+    private function contains($entity)
+    {
+        foreach ($this->uniqueFields as $field) {
+            $value = $this->objectMetadata->getFieldValue($entity, $field);
+            $key = $field.'_'.$value;
+            if (isset($this->uniqueFieldsValues[$key])) {
+                return true;
+            } else {
+                $this->uniqueFieldsValues[$key] = true;
+            }
+        }
+
+        return false;
     }
 }

@@ -12,4 +12,10 @@ use Doctrine\ORM\EntityRepository;
  */
 class ProductItemRepository extends EntityRepository
 {
+    public function findAll()
+    {
+        return $this->getEntityManager()
+                    ->createQuery('SELECT COUNT(*) FROM ItransitionDataImporterBundle:Product')
+                    ->getResult();
+    }
 }
